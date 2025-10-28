@@ -1,0 +1,38 @@
+.elite-gallery{
+	width:100%;
+	display:grid;
+	grid-template-columns: repeat(3,1fr);
+	a{
+		display:block;
+		width:100%;
+		height:100%;
+		picture{
+			display:block;
+			width:100%;
+			height:100%;
+			img{
+				width:100%;
+				height:initial;
+			}
+		}
+		position: relative;
+		&:before{
+			position: absolute;
+			display:grid;
+			align-content: center;
+			justify-content: center;
+			width:100%;
+			height:100%;
+			content:'+';
+			font-size:40px;
+			left:0;
+			top:0;
+			transition: opacity 0.5s ease;
+			/*background: $dark;*/
+			backdrop-filter: blur(5px);
+			opacity:0;
+			z-index: 2;
+			color:#fff;
+		}
+	}
+}
