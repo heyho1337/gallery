@@ -1,0 +1,14 @@
+{% extends '@EasyAdmin/crud/form_theme.html.twig' %}
+
+{% block _Gallery_images_widget %}
+    {# admin/form/image_upload_with_preview.html.twig #}
+
+    <input type="file"
+       name="images"
+       class="filepond"
+       accept="image/*"
+       multiple
+       data-controller="admin--filepond"
+       data-admin--filepond-target="input"
+/>
+{% endblock %}

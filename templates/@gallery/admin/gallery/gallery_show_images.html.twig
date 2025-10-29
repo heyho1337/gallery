@@ -1,0 +1,18 @@
+{% block _Gallery_imagePaths_widget %}
+    {% set images = form.parent.vars.data.imagePaths ?? null %}
+
+    {% if images is iterable and images|length > 0 %}
+        <div 
+            class="galleryView" 
+            data-controller="admin--lightgallery" 
+            data-admin--lightgallery-animate="true"
+            data-admin--lightgallery-speed-value="500"
+        >
+            {% for image in images %}
+                <a href="{{ asset('uploads/gallery/' ~ image ~ '.webp') }}" data-lg-size="1600-1067" class="gallery-item">
+                    <img src="{{ asset('uploads/gallery/' ~ image ~ '.webp') }}" alt="" />
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}
