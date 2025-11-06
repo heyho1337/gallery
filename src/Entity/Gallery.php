@@ -7,7 +7,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Gedmo\Mapping\Annotation as Gedmo;
 
 #[ORM\Entity(repositoryClass: GalleryRepository::class)]
 class Gallery
@@ -19,29 +18,24 @@ class Gallery
 
     private static string $currentLang = 'en';
 
-    private ?string $name = null;
+    // JSON translation storage
+    #[ORM\Column(type: Types::JSON)]
+    private array $name = [];
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $name_hu = null;
+    #[ORM\Column(type: Types::JSON)]
+    private array $title = [];
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $name_en = null;
+    #[ORM\Column(type: Types::JSON)]
+    private array $meta_desc = [];
 
-    private ?string $title = null;
+    #[ORM\Column(type: Types::JSON)]
+    private array $slug = [];
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $title_hu = null;
+    #[ORM\Column(type: Types::JSON)]
+    private array $text = [];
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $title_en = null;
-
-    private ?string $meta_desc = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $meta_desc_hu = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $meta_desc_en = null;
+    #[ORM\Column(type: Types::JSON)]
+    private array $short_desc = [];
 
     #[ORM\Column]
     private ?\DateTimeImmutable $created_at = null;
@@ -51,16 +45,6 @@ class Gallery
 
     #[ORM\Column]
     private ?bool $active = null;
-
-    private ?string $slug = null;
-
-    #[Gedmo\Slug(fields: ['name_hu'])]
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $slug_hu = null;
-
-    #[Gedmo\Slug(fields: ['name_en'])]
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $slug_en = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'children')]
     private ?self $parent = null;
@@ -74,33 +58,22 @@ class Gallery
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
-    private ?string $text = null;
-
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $text_hu = null;
-
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $text_en = null;
-
     /**
      * @var Collection<int, GalleryImage>
      */
     #[ORM\OneToMany(targetEntity: GalleryImage::class, mappedBy: 'parent', orphanRemoval: true)]
     private Collection $galleryImages;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $short_desc = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $short_desc_hu = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $short_desc_en = null;
-
     public function __construct()
     {
         $this->children = new ArrayCollection();
         $this->galleryImages = new ArrayCollection();
+        $this->name = [];
+        $this->title = [];
+        $this->meta_desc = [];
+        $this->slug = [];
+        $this->text = [];
+        $this->short_desc = [];
     }
 
     public function getId(): ?int
@@ -108,111 +81,149 @@ class Gallery
         return $this->id;
     }
 
-    public function getName(): ?string
+    // Smart getters/setters
+    public function getName(?string $lang = null): ?string
+    {
+        $lang = $lang ?? self::$currentLang;
+        return $this->name[$lang] ?? $this->name['en'] ?? null;
+    }
+
+    public function setName(?string $value, ?string $lang = null): static
+    {
+        $lang = $lang ?? self::$currentLang;
+        $this->name[$lang] = $value;
+        return $this;
+    }
+
+    public function getTitle(?string $lang = null): ?string
+    {
+        $lang = $lang ?? self::$currentLang;
+        return $this->title[$lang] ?? $this->title['en'] ?? null;
+    }
+
+    public function setTitle(?string $value, ?string $lang = null): static
+    {
+        $lang = $lang ?? self::$currentLang;
+        $this->title[$lang] = $value;
+        return $this;
+    }
+
+    public function getMetaDesc(?string $lang = null): ?string
+    {
+        $lang = $lang ?? self::$currentLang;
+        return $this->meta_desc[$lang] ?? $this->meta_desc['en'] ?? null;
+    }
+
+    public function setMetaDesc(?string $value, ?string $lang = null): static
+    {
+        $lang = $lang ?? self::$currentLang;
+        $this->meta_desc[$lang] = $value;
+        return $this;
+    }
+
+    public function getSlug(?string $lang = null): ?string
+    {
+        $lang = $lang ?? self::$currentLang;
+        return $this->slug[$lang] ?? $this->slug['en'] ?? null;
+    }
+
+    public function setSlug(?string $value, ?string $lang = null): static
+    {
+        $lang = $lang ?? self::$currentLang;
+        $this->slug[$lang] = $value;
+        return $this;
+    }
+
+    public function getText(?string $lang = null): ?string
+    {
+        $lang = $lang ?? self::$currentLang;
+        return $this->text[$lang] ?? $this->text['en'] ?? null;
+    }
+
+    public function setText(?string $value, ?string $lang = null): static
+    {
+        $lang = $lang ?? self::$currentLang;
+        $this->text[$lang] = $value;
+        return $this;
+    }
+
+    public function getShortDesc(?string $lang = null): ?string
+    {
+        $lang = $lang ?? self::$currentLang;
+        return $this->short_desc[$lang] ?? $this->short_desc['en'] ?? null;
+    }
+
+    public function setShortDesc(?string $value, ?string $lang = null): static
+    {
+        $lang = $lang ?? self::$currentLang;
+        $this->short_desc[$lang] = $value;
+        return $this;
+    }
+
+    // Methods to get/set all translations
+    public function getNameTranslations(): array
     {
         return $this->name;
     }
 
-    public function setName(?string $name): static
+    public function setNameTranslations(array $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
-    public function getNameHu(): ?string
-    {
-        return $this->name_hu;
-    }
-
-    public function setNameHu(?string $name_hu): static
-    {
-        $this->name_hu = $name_hu;
-
-        return $this;
-    }
-
-    public function getNameEn(): ?string
-    {
-        return $this->name_en;
-    }
-
-    public function setNameEn(?string $name_en): static
-    {
-        $this->name_en = $name_en;
-
-        return $this;
-    }
-
-    public function getTitle(): ?string
+    public function getTitleTranslations(): array
     {
         return $this->title;
     }
 
-    public function setTitle(?string $title): static
+    public function setTitleTranslations(array $title): static
     {
         $this->title = $title;
-
         return $this;
     }
 
-    public function getTitleHu(): ?string
-    {
-        return $this->title_hu;
-    }
-
-    public function setTitleHu(?string $title_hu): static
-    {
-        $this->title_hu = $title_hu;
-
-        return $this;
-    }
-
-    public function getTitleEn(): ?string
-    {
-        return $this->title_en;
-    }
-
-    public function setTitleEn(?string $title_en): static
-    {
-        $this->title_en = $title_en;
-
-        return $this;
-    }
-
-    public function getMetaDesc(): ?string
+    public function getMetaDescTranslations(): array
     {
         return $this->meta_desc;
     }
 
-    public function setMetaDesc(?string $meta_desc): static
+    public function setMetaDescTranslations(array $meta_desc): static
     {
         $this->meta_desc = $meta_desc;
-
         return $this;
     }
 
-    public function getMetaDescHu(): ?string
+    public function getSlugTranslations(): array
     {
-        return $this->meta_desc_hu;
+        return $this->slug;
     }
 
-    public function setMetaDescHu(?string $meta_desc_hu): static
+    public function setSlugTranslations(array $slug): static
     {
-        $this->meta_desc_hu = $meta_desc_hu;
-
+        $this->slug = $slug;
         return $this;
     }
 
-    public function getMetaDescEn(): ?string
+    public function getTextTranslations(): array
     {
-        return $this->meta_desc_en;
+        return $this->text;
     }
 
-    public function setMetaDescEn(?string $meta_desc_en): static
+    public function setTextTranslations(array $text): static
     {
-        $this->meta_desc_en = $meta_desc_en;
+        $this->text = $text;
+        return $this;
+    }
 
+    public function getShortDescTranslations(): array
+    {
+        return $this->short_desc;
+    }
+
+    public function setShortDescTranslations(array $short_desc): static
+    {
+        $this->short_desc = $short_desc;
         return $this;
     }
 
@@ -224,7 +235,6 @@ class Gallery
     public function setCreatedAt(\DateTimeImmutable $created_at): static
     {
         $this->created_at = $created_at;
-
         return $this;
     }
 
@@ -236,7 +246,6 @@ class Gallery
     public function setModifiedAt(\DateTimeImmutable $modified_at): static
     {
         $this->modified_at = $modified_at;
-
         return $this;
     }
 
@@ -248,43 +257,6 @@ class Gallery
     public function setActive(bool $active): static
     {
         $this->active = $active;
-
-        return $this;
-    }
-
-    public function getSlug(): ?string
-    {
-        return $this->slug;
-    }
-
-    public function setSlug(?string $slug): static
-    {
-        $this->slug = $slug;
-
-        return $this;
-    }
-
-    public function getSlugHu(): ?string
-    {
-        return $this->slug_hu;
-    }
-
-    public function setSlugHu(?string $slug_hu): static
-    {
-        $this->slug_hu = $slug_hu;
-
-        return $this;
-    }
-
-    public function getSlugEn(): ?string
-    {
-        return $this->slug_en;
-    }
-
-    public function setSlugEn(?string $slug_en): static
-    {
-        $this->slug_en = $slug_en;
-
         return $this;
     }
 
@@ -296,7 +268,6 @@ class Gallery
     public function setParent(?self $parent): static
     {
         $this->parent = $parent;
-
         return $this;
     }
 
@@ -314,19 +285,16 @@ class Gallery
             $this->children->add($child);
             $child->setParent($this);
         }
-
         return $this;
     }
 
     public function removeChild(self $child): static
     {
         if ($this->children->removeElement($child)) {
-            // set the owning side to null (unless already changed)
             if ($child->getParent() === $this) {
                 $child->setParent(null);
             }
         }
-
         return $this;
     }
 
@@ -338,43 +306,6 @@ class Gallery
     public function setImage(?string $image): static
     {
         $this->image = $image;
-
-        return $this;
-    }
-
-    public function getText(): ?string
-    {
-        return $this->text;
-    }
-
-    public function setText(?string $text): static
-    {
-        $this->text = $text;
-
-        return $this;
-    }
-
-    public function getTextHu(): ?string
-    {
-        return $this->text_hu;
-    }
-
-    public function setTextHu(?string $text_hu): static
-    {
-        $this->text_hu = $text_hu;
-
-        return $this;
-    }
-
-    public function getTextEn(): ?string
-    {
-        return $this->text_en;
-    }
-
-    public function setTextEn(?string $text_en): static
-    {
-        $this->text_en = $text_en;
-
         return $this;
     }
 
@@ -392,19 +323,16 @@ class Gallery
             $this->galleryImages->add($galleryImage);
             $galleryImage->setParent($this);
         }
-
         return $this;
     }
 
     public function removeGalleryImage(GalleryImage $galleryImage): static
     {
         if ($this->galleryImages->removeElement($galleryImage)) {
-            // set the owning side to null (unless already changed)
             if ($galleryImage->getParent() === $this) {
                 $galleryImage->setParent(null);
             }
         }
-
         return $this;
     }
 
@@ -413,50 +341,14 @@ class Gallery
         self::$currentLang = $lang;
     }
 
+    public static function getCurrentLang(): string
+    {
+        return self::$currentLang;
+    }
+
     public function __toString(): string
     {
-        $getter = 'getName' . self::$currentLang;
-        if (method_exists($this, $getter)) {
-            return (string) $this->$getter();
-        }
-
-        return '';
-    }
-
-    public function getShortDesc(): ?string
-    {
-        return $this->short_desc;
-    }
-
-    public function setShortDesc(?string $short_desc): static
-    {
-        $this->short_desc = $short_desc;
-
-        return $this;
-    }
-
-    public function getShortDescHu(): ?string
-    {
-        return $this->short_desc_hu;
-    }
-
-    public function setShortDescHu(?string $short_desc_hu): static
-    {
-        $this->short_desc_hu = $short_desc_hu;
-
-        return $this;
-    }
-
-    public function getShortDescEn(): ?string
-    {
-        return $this->short_desc_en;
-    }
-
-    public function setShortDescEn(?string $short_desc_en): static
-    {
-        $this->short_desc_en = $short_desc_en;
-
-        return $this;
+        return $this->getName() ?? '';
     }
 
     public function getImagePaths(): array

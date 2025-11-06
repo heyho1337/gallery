@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\GalleryImageRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: GalleryImageRepository::class)]
@@ -13,40 +14,23 @@ class GalleryImage
     #[ORM\Column]
     private ?int $id = null;
 
+    private static string $currentLang = 'en';
+
     #[ORM\Column(length: 255)]
     private ?string $image = null;
 
-    private ?string $alt = null;
+    // JSON translation storage
+    #[ORM\Column(type: Types::JSON)]
+    private array $alt = [];
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $alt_hu = null;
+    #[ORM\Column(type: Types::JSON)]
+    private array $title = [];
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $alt_en = null;
+    #[ORM\Column(type: Types::JSON)]
+    private array $short_desc = [];
 
-    private ?string $title = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $title_hu = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $title_en = null;
-
-    private ?string $short_desc = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $short_desc_hu = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $short_desc_en = null;
-
-    private ?string $name = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $name_hu = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $name_en = null;
+    #[ORM\Column(type: Types::JSON)]
+    private array $name = [];
 
     #[ORM\Column]
     private ?\DateTimeImmutable $modified_at = null;
@@ -61,6 +45,14 @@ class GalleryImage
     #[ORM\JoinColumn(nullable: false)]
     private ?Gallery $parent = null;
 
+    public function __construct()
+    {
+        $this->alt = [];
+        $this->title = [];
+        $this->short_desc = [];
+        $this->name = [];
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -74,151 +66,104 @@ class GalleryImage
     public function setImage(string $image): static
     {
         $this->image = $image;
-
         return $this;
     }
 
-    public function getAlt(): ?string
+    // Smart getters/setters
+    public function getAlt(?string $lang = null): ?string
+    {
+        $lang = $lang ?? self::$currentLang;
+        return $this->alt[$lang] ?? $this->alt['en'] ?? null;
+    }
+
+    public function setAlt(?string $value, ?string $lang = null): static
+    {
+        $lang = $lang ?? self::$currentLang;
+        $this->alt[$lang] = $value;
+        return $this;
+    }
+
+    public function getTitle(?string $lang = null): ?string
+    {
+        $lang = $lang ?? self::$currentLang;
+        return $this->title[$lang] ?? $this->title['en'] ?? null;
+    }
+
+    public function setTitle(?string $value, ?string $lang = null): static
+    {
+        $lang = $lang ?? self::$currentLang;
+        $this->title[$lang] = $value;
+        return $this;
+    }
+
+    public function getShortDesc(?string $lang = null): ?string
+    {
+        $lang = $lang ?? self::$currentLang;
+        return $this->short_desc[$lang] ?? $this->short_desc['en'] ?? null;
+    }
+
+    public function setShortDesc(?string $value, ?string $lang = null): static
+    {
+        $lang = $lang ?? self::$currentLang;
+        $this->short_desc[$lang] = $value;
+        return $this;
+    }
+
+    public function getName(?string $lang = null): ?string
+    {
+        $lang = $lang ?? self::$currentLang;
+        return $this->name[$lang] ?? $this->name['en'] ?? null;
+    }
+
+    public function setName(?string $value, ?string $lang = null): static
+    {
+        $lang = $lang ?? self::$currentLang;
+        $this->name[$lang] = $value;
+        return $this;
+    }
+
+    // Methods to get/set all translations
+    public function getAltTranslations(): array
     {
         return $this->alt;
     }
 
-    public function setAlt(?string $alt): static
+    public function setAltTranslations(array $alt): static
     {
         $this->alt = $alt;
-
         return $this;
     }
 
-    public function getAltHu(): ?string
-    {
-        return $this->alt_hu;
-    }
-
-    public function setAltHu(?string $alt_hu): static
-    {
-        $this->alt_hu = $alt_hu;
-
-        return $this;
-    }
-
-    public function getAltEn(): ?string
-    {
-        return $this->alt_en;
-    }
-
-    public function setAltEn(?string $alt_en): static
-    {
-        $this->alt_en = $alt_en;
-
-        return $this;
-    }
-
-    public function getTitle(): ?string
+    public function getTitleTranslations(): array
     {
         return $this->title;
     }
 
-    public function setTitle(?string $title): static
+    public function setTitleTranslations(array $title): static
     {
         $this->title = $title;
-
         return $this;
     }
 
-    public function getTitleHu(): ?string
-    {
-        return $this->title_hu;
-    }
-
-    public function setTitleHu(?string $title_hu): static
-    {
-        $this->title_hu = $title_hu;
-
-        return $this;
-    }
-
-    public function getTitleEn(): ?string
-    {
-        return $this->title_en;
-    }
-
-    public function setTitleEn(?string $title_en): static
-    {
-        $this->title_en = $title_en;
-
-        return $this;
-    }
-
-    public function getShortDesc(): ?string
+    public function getShortDescTranslations(): array
     {
         return $this->short_desc;
     }
 
-    public function setShortDesc(?string $short_desc): static
+    public function setShortDescTranslations(array $short_desc): static
     {
         $this->short_desc = $short_desc;
-
         return $this;
     }
 
-    public function getShortDescHu(): ?string
-    {
-        return $this->short_desc_hu;
-    }
-
-    public function setShortDescHu(?string $short_desc_hu): static
-    {
-        $this->short_desc_hu = $short_desc_hu;
-
-        return $this;
-    }
-
-    public function getShortDescEn(): ?string
-    {
-        return $this->short_desc_en;
-    }
-
-    public function setShortDescEn(?string $short_desc_en): static
-    {
-        $this->short_desc_en = $short_desc_en;
-
-        return $this;
-    }
-
-    public function getName(): ?string
+    public function getNameTranslations(): array
     {
         return $this->name;
     }
 
-    public function setName(?string $name): static
+    public function setNameTranslations(array $name): static
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    public function getNameHu(): ?string
-    {
-        return $this->name_hu;
-    }
-
-    public function setNameHu(?string $name_hu): static
-    {
-        $this->name_hu = $name_hu;
-
-        return $this;
-    }
-
-    public function getNameEn(): ?string
-    {
-        return $this->name_en;
-    }
-
-    public function setNameEn(?string $name_en): static
-    {
-        $this->name_en = $name_en;
-
         return $this;
     }
 
@@ -230,7 +175,6 @@ class GalleryImage
     public function setModifiedAt(\DateTimeImmutable $modified_at): static
     {
         $this->modified_at = $modified_at;
-
         return $this;
     }
 
@@ -242,7 +186,6 @@ class GalleryImage
     public function setCreatedAt(\DateTimeImmutable $created_at): static
     {
         $this->created_at = $created_at;
-
         return $this;
     }
 
@@ -254,7 +197,6 @@ class GalleryImage
     public function setActive(bool $active): static
     {
         $this->active = $active;
-
         return $this;
     }
 
@@ -266,7 +208,21 @@ class GalleryImage
     public function setParent(?Gallery $parent): static
     {
         $this->parent = $parent;
-
         return $this;
+    }
+
+    public static function setCurrentLang(string $lang): void
+    {
+        self::$currentLang = $lang;
+    }
+
+    public static function getCurrentLang(): string
+    {
+        return self::$currentLang;
+    }
+
+    public function __toString(): string
+    {
+        return $this->getName() ?? '';
     }
 }

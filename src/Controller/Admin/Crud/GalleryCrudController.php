@@ -28,7 +28,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 
 class GalleryCrudController extends AbstractCrudController
 {
-
     private string $lang;
 
     public function __construct(
@@ -93,20 +92,20 @@ class GalleryCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        Gallery::setCurrentLang($this->lang);
         $this->getContext()->getRequest()->setLocale($this->lang);
         $this->translator->getCatalogue($this->lang);
         $this->translator->setLocale($this->lang);
+        
         /**
          * on forms
          */
-        yield FormField::addTab($this->translateService->translateSzavak("options"));
-            yield AssociationField::new('parent', $this->translateService->translateSzavak("parent"))
+        yield FormField::addTab($this->translateService->translateWords("options"));
+            yield AssociationField::new('parent', $this->translateService->translateWords("parent"))
                 ->setRequired(false)
                 ->autocomplete()
                 ->hideOnIndex()
                 ->setCrudController(GalleryCrudController::class);
-            yield Field::new('image', $this->translateService->translateSzavak('image'))
+            yield Field::new('image', $this->translateService->translateWords('image'))
                 ->setFormType(FileType::class)
                 ->setFormTypeOptions([
                     'required' => false,
@@ -116,43 +115,131 @@ class GalleryCrudController extends AbstractCrudController
                     ],
                 ])
                 ->onlyOnForms();
-            yield BooleanField::new('active',$this->translateService->translateSzavak("active"))
+            yield BooleanField::new('active',$this->translateService->translateWords("active"))
                 ->renderAsSwitch(true)
                 ->setFormTypeOptions(['data' => true])
                 ->onlyOnForms();
 
-        yield FormField::addTab($this->translateService->translateSzavak($this->langService->getDefaultObject()->getName()));
-            yield TextField::new('name_'.$this->langService->getDefault(), $this->translateService->translateSzavak("name"))
+        // ✅ Default language tab - use custom getter/setter
+        yield FormField::addTab($this->translateService->translateWords($this->langService->getDefaultObject()->getName()));
+            yield TextField::new('name', $this->translateService->translateWords("name"))
+                ->setFormTypeOption('getter', function(Gallery $entity) {
+                    return $entity->getName($this->langService->getDefault());
+                })
+                ->setFormTypeOption('setter', function(Gallery &$entity, $value) {
+                    $entity->setName($value, $this->langService->getDefault());
+                })
                 ->hideOnIndex();
-            yield TextField::new('slug_'.$this->langService->getDefault(), $this->translateService->translateSzavak("url"))
+            yield TextField::new('slug', $this->translateService->translateWords("url"))
+                ->setFormTypeOption('getter', function(Gallery $entity) {
+                    return $entity->getSlug($this->langService->getDefault());
+                })
+                ->setFormTypeOption('setter', function(Gallery &$entity, $value) {
+                    $entity->setSlug($value, $this->langService->getDefault());
+                })
                 ->hideOnIndex();
-            yield TextField::new('title_'.$this->langService->getDefault(), $this->translateService->translateSzavak("title"))->hideOnIndex();
-            yield TextareaField::new('short_desc_'.$this->langService->getDefault(), $this->translateService->translateSzavak("short_description","short description"))->hideOnIndex();
-            yield Field::new('text_'.$this->langService->getDefault(), $this->translateService->translateSzavak("text"))
+            yield TextField::new('title', $this->translateService->translateWords("title"))
+                ->setFormTypeOption('getter', function(Gallery $entity) {
+                    return $entity->getTitle($this->langService->getDefault());
+                })
+                ->setFormTypeOption('setter', function(Gallery &$entity, $value) {
+                    $entity->setTitle($value, $this->langService->getDefault());
+                })
+                ->hideOnIndex();
+            yield TextareaField::new('short_desc', $this->translateService->translateWords("short_description","short description"))
+                ->setFormTypeOption('getter', function(Gallery $entity) {
+                    return $entity->getShortDesc($this->langService->getDefault());
+                })
+                ->setFormTypeOption('setter', function(Gallery &$entity, $value) {
+                    $entity->setShortDesc($value, $this->langService->getDefault());
+                })
+                ->hideOnIndex();
+            yield Field::new('text', $this->translateService->translateWords("text"))
                 ->setFormType(CKEditorType::class)
+                ->setFormTypeOption('getter', function(Gallery $entity) {
+                    return $entity->getText($this->langService->getDefault());
+                })
+                ->setFormTypeOption('setter', function(Gallery &$entity, $value) {
+                    $entity->setText($value, $this->langService->getDefault());
+                })
                 ->onlyOnForms();
-            yield TextField::new('meta_desc_'.$this->langService->getDefault(), $this->translateService->translateSzavak("meta_desc","meta desc"))->hideOnIndex();
+            yield TextField::new('meta_desc', $this->translateService->translateWords("meta_desc","meta desc"))
+                ->setFormTypeOption('getter', function(Gallery $entity) {
+                    return $entity->getMetaDesc($this->langService->getDefault());
+                })
+                ->setFormTypeOption('setter', function(Gallery &$entity, $value) {
+                    $entity->setMetaDesc($value, $this->langService->getDefault());
+                })
+                ->hideOnIndex();
         
+        // ✅ Other language tabs - use custom getter/setter for each
         foreach($this->langService->getLangs() as $lang){
             if(!$lang->isDefault()){
-                yield FormField::addTab($this->translateService->translateSzavak($lang->getName()));
-                yield TextField::new('name_'.$lang->getCode(), $this->translateService->translateSzavak("name"))
+                $langCode = $lang->getCode();
+                
+                yield FormField::addTab($this->translateService->translateWords($lang->getName()));
+                
+                yield TextField::new('name_' . $langCode, $this->translateService->translateWords("name"))
+                    ->setFormTypeOption('getter', function(Gallery $entity) use ($langCode) {
+                        return $entity->getName($langCode);
+                    })
+                    ->setFormTypeOption('setter', function(Gallery &$entity, $value) use ($langCode) {
+                        $entity->setName($value, $langCode);
+                    })
                     ->hideOnIndex();
-                yield TextField::new('slug_'.$lang->getCode(), $this->translateService->translateSzavak("url"))
-                ->hideOnIndex();
-                yield TextField::new('title_'.$lang->getCode(), $this->translateService->translateSzavak("title"))->hideOnIndex();
-                yield TextareaField::new('short_desc_'.$lang->getCode(), $this->translateService->translateSzavak("short_description","short description"))->hideOnIndex();
-                yield Field::new('text_'.$lang->getCode(), $this->translateService->translateSzavak("text"))
+                
+                yield TextField::new('slug_' . $langCode, $this->translateService->translateWords("url"))
+                    ->setFormTypeOption('getter', function(Gallery $entity) use ($langCode) {
+                        return $entity->getSlug($langCode);
+                    })
+                    ->setFormTypeOption('setter', function(Gallery &$entity, $value) use ($langCode) {
+                        $entity->setSlug($value, $langCode);
+                    })
+                    ->hideOnIndex();
+                
+                yield TextField::new('title_' . $langCode, $this->translateService->translateWords("title"))
+                    ->setFormTypeOption('getter', function(Gallery $entity) use ($langCode) {
+                        return $entity->getTitle($langCode);
+                    })
+                    ->setFormTypeOption('setter', function(Gallery &$entity, $value) use ($langCode) {
+                        $entity->setTitle($value, $langCode);
+                    })
+                    ->hideOnIndex();
+                
+                yield TextareaField::new('short_desc_' . $langCode, $this->translateService->translateWords("short_description","short description"))
+                    ->setFormTypeOption('getter', function(Gallery $entity) use ($langCode) {
+                        return $entity->getShortDesc($langCode);
+                    })
+                    ->setFormTypeOption('setter', function(Gallery &$entity, $value) use ($langCode) {
+                        $entity->setShortDesc($value, $langCode);
+                    })
+                    ->hideOnIndex();
+                
+                yield Field::new('text_' . $langCode, $this->translateService->translateWords("text"))
                     ->setFormType(CKEditorType::class)
+                    ->setFormTypeOption('getter', function(Gallery $entity) use ($langCode) {
+                        return $entity->getText($langCode);
+                    })
+                    ->setFormTypeOption('setter', function(Gallery &$entity, $value) use ($langCode) {
+                        $entity->setText($value, $langCode);
+                    })
                     ->onlyOnForms();
-                yield TextField::new('meta_desc_'.$lang->getCode(), $this->translateService->translateSzavak("meta_desc","meta desc"))->hideOnIndex();
+                
+                yield TextField::new('meta_desc_' . $langCode, $this->translateService->translateWords("meta_desc","meta desc"))
+                    ->setFormTypeOption('getter', function(Gallery $entity) use ($langCode) {
+                        return $entity->getMetaDesc($langCode);
+                    })
+                    ->setFormTypeOption('setter', function(Gallery &$entity, $value) use ($langCode) {
+                        $entity->setMetaDesc($value, $langCode);
+                    })
+                    ->hideOnIndex();
             }
         }
 
         if ($pageName === Crud::PAGE_EDIT) {
-            yield FormField::addTab($this->translateService->translateSzavak("images"));
+            yield FormField::addTab($this->translateService->translateWords("images"));
                 yield ImageField::new('images')
-                    ->setLabel($this->translateService->translateSzavak("upload_images","Upload Images"))
+                    ->setLabel($this->translateService->translateWords("upload_images","Upload Images"))
                     ->setUploadDir('/public/uploads/gallery')
                     ->onlyOnForms()
                     ->setFormTypeOptions([
@@ -162,28 +249,37 @@ class GalleryCrudController extends AbstractCrudController
                         'required' => false,
                     ])
                     ->addCssClass('filepond');
-                yield ArrayField::new('imagePaths') // Use your accessor, not galleryImages directly
-                    ->setLabel($this->translateService->translateSzavak("gallery_images","Gallery Images"))
+                yield ArrayField::new('imagePaths')
+                    ->setLabel($this->translateService->translateWords("gallery_images","Gallery Images"))
                     ->onlyOnForms();
         }
 
         /**
          * index
          */
-        yield TextField::new('name_'.$this->langService->getDefault(), $this->translateService->translateSzavak("name"))
-            ->formatValue(function ($value, $entity) {
+        yield TextField::new('name', $this->translateService->translateWords("name"))
+            ->formatValue(function ($value, Gallery $entity) {
+                $default = $this->langService->getDefault();
+                $name = $entity->getName($default);
+                
                 $url = $this->adminUrlGenerator
                     ->setController(self::class)
                     ->setAction('edit')
                     ->setEntityId($entity->getId())
                     ->generateUrl();
 
-                return sprintf('<a href="%s">%s</a>', $url, htmlspecialchars($value));
+                return sprintf('<a href="%s">%s</a>', $url, htmlspecialchars($name));
             })
             ->onlyOnIndex()
             ->renderAsHtml();
-        yield TextField::new('slug_'.$this->langService->getDefault(), $this->translateService->translateSzavak("url"))->onlyOnIndex();
-        yield ImageField::new('image', $this->translateService->translateSzavak("image"))
+        
+        yield TextField::new('slug', $this->translateService->translateWords("url"))
+            ->formatValue(function ($value, Gallery $entity) {
+                return $entity->getSlug($this->langService->getDefault());
+            })
+            ->onlyOnIndex();
+        
+        yield ImageField::new('image', $this->translateService->translateWords("image"))
             ->setBasePath('/uploads/gallery')
             ->formatValue(function ($value, $entity) {
                 if (!$value) {
@@ -193,10 +289,10 @@ class GalleryCrudController extends AbstractCrudController
                 return "/uploads/gallery/{$value}.webp";
             })
             ->onlyOnIndex();
-        yield DateField::new('created_at', $this->translateService->translateSzavak("created_at","created"))->hideOnForm();
-        yield DateField::new('modified_at',$this->translateService->translateSzavak("modified_at","modified"))->hideOnForm();
-        yield AssociationField::new('parent',$this->translateService->translateSzavak("parent"))->onlyOnIndex();
-        yield BooleanField::new('active', $this->translateService->translateSzavak("active"))
+        yield DateField::new('created_at', $this->translateService->translateWords("created_at","created"))->hideOnForm();
+        yield DateField::new('modified_at',$this->translateService->translateWords("modified_at","modified"))->hideOnForm();
+        yield AssociationField::new('parent',$this->translateService->translateWords("parent"))->onlyOnIndex();
+        yield BooleanField::new('active', $this->translateService->translateWords("active"))
             ->renderAsSwitch(true)
             ->onlyOnIndex();
     }
