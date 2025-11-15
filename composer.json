@@ -22,7 +22,7 @@
         "symfony": {
             "endpoint": [
                 "flex://defaults",
-                "https://raw.githubusercontent.com/heyho1337/gallery-recipe/main/index.json"
+                "https://raw.githubusercontent.com/heyho1337/gallery-recipe/master/index.json"
             ]
         }
     }
